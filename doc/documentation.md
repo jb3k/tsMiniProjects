@@ -5,12 +5,4 @@ Installation:
 
 
 
-Projects:
-
-1. Translation App
-2. To Do list project
-3. Tik Tak Toe
-4. Connect four
-5. Front-end for Reddit
-6. shopping cart?
-7. 
+Project: To-do List
