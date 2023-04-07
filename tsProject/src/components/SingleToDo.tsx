@@ -1,89 +1,88 @@
-import React, { useState, useEffect, useRef } from "react";
-import { ToDo } from "../model";
-import { AiFillDelete, AiFillEdit } from 'react-icons/ai'
-import { MdDone } from 'react-icons/md'
-import './stylesheet.css'
+import React, { useEffect, useState } from "react";
+import { useRef } from "react";
+import { AiFillEdit, AiFillDelete } from "react-icons/ai";
+import { MdDone } from "react-icons/md";
+import { Todo } from "../model";
 import { Draggable } from "react-beautiful-dnd";
 
-type Props = {
-    index: number
-    task: ToDo;
-    allTasks: ToDo[];
-    setAllTasks: React.Dispatch<React.SetStateAction<ToDo[]>>;
+const SingleTodo: React.FC<{
+  index: number;
+  todo: Todo;
+  todos: Array<Todo>;
+  setTodos: React.Dispatch<React.SetStateAction<Array<Todo>>>;
+}> = ({ index, todo, todos, setTodos }) => {
+  const [edit, setEdit] = useState<boolean>(false);
+  const [editTodo, setEditTodo] = useState<string>(todo.todo);
 
-}
+  const inputRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, [edit]);
 
+  const handleEdit = (e: React.FormEvent, id: number) => {
+    e.preventDefault();
+    setTodos(
+      todos.map((todo) => (todo.id === id ? { ...todo, todo: editTodo } : todo))
+    );
+    setEdit(false);
+  };
 
-const SingleTask: React.FC<Props> = ({ index, task, allTasks, setAllTasks }) => {
+  const handleDelete = (id: number) => {
+    setTodos(todos.filter((todo) => todo.id !== id));
+  };
 
-    const [edit, setEdit] = useState<boolean>(false)
-    const [editTask, setEditTask] = useState<string>(task.todo)
+  const handleDone = (id: number) => {
+    setTodos(
+      todos.map((todo) =>
+        todo.id === id ? { ...todo, isDone: !todo.isDone } : todo
+      )
+    );
+  };
 
-    //this makes sure you can focus on the edit form when you click on the edit button
-    const inputRef = useRef<HTMLInputElement>(null);
-    useEffect(() => {
-        inputRef.current?.focus();
-    }, [edit]);
+  return (
+    <Draggable draggableId={todo.id.toString()} index={index}>
+      {(provided, snapshot) => (
+        <form
+          onSubmit={(e) => handleEdit(e, todo.id)}
+          {...provided.draggableProps}
+          {...provided.dragHandleProps}
+          ref={provided.innerRef}
+          className={`todos__single ${snapshot.isDragging ? "drag" : ""}`}
+        >
+          {edit ? (
+            <input
+              value={editTodo}
+              onChange={(e) => setEditTodo(e.target.value)}
+              className="todos__single--text"
+              ref={inputRef}
+            />
+          ) : todo.isDone ? (
+            <s className="todos__single--text">{todo.todo}</s>
+          ) : (
+            <span className="todos__single--text">{todo.todo}</span>
+          )}
+          <div>
+            <span
+              className="icon"
+              onClick={() => {
+                if (!edit && !todo.isDone) {
+                  setEdit(!edit);
+                }
+              }}
+            >
+              <AiFillEdit />
+            </span>
+            <span className="icon" onClick={() => handleDelete(todo.id)}>
+              <AiFillDelete />
+            </span>
+            <span className="icon" onClick={() => handleDone(todo.id)}>
+              <MdDone />
+            </span>
+          </div>
+        </form>
+      )}
+    </Draggable>
+  );
+};
 
-
-    const handleTaskFinished = (id: number) => {
-        setAllTasks(allTasks.map((task) =>
-            task.id === id ? { ...task, isDone: !task.isDone } : task
-        ))
-
-    }
-
-    const handleDelete = (id: number) => {
-        setAllTasks(allTasks.filter((task => task.id !== id)))
-    }
-
-    const handleEdit = (e: React.FormEvent, id: number) => {
-        e.preventDefault()
-
-        setAllTasks(allTasks.map((todo) =>
-            todo.id === id ? { ...task, todo: editTask } : task
-        ))
-        setEdit(false)
-    }
-
-    return (
-        <Draggable draggableId={task.id.toString()} index={index}>
-            {(provided, snapshot) => (
-                <form
-                    className={`todos-single ${snapshot.isDragging ? "drag" : ""}`}
-                    onSubmit={(e) => { handleEdit(e, task.id) }}
-                    {...provided.draggableProps}
-                    {...provided.dragHandleProps}
-                    ref={provided.innerRef}
-                >
-                    {edit ? (
-                        <input
-                            value={editTask}
-                            onChange={(e) => setEditTask(e.target.value)}
-                            className="todos-single-text"
-                            ref={inputRef}
-                        />
-                    ) : task.isDone ? (
-                        <s className="todos-single-text"> {task.todo}</s>
-                    ) : (
-                        <span className="todos-single-text">{task.todo}</span>
-                    )}
-                    <div>
-                        <span className="icon" onClick={() => {
-                            if (!edit && !task.isDone) { setEdit(!edit) }
-                        }}
-                        >
-                            <AiFillEdit />
-                        </span>
-
-                        <span className="icon" onClick={() => { handleDelete(task.id) }}><AiFillDelete /></span>
-                        <span className="icon" onClick={() => { handleTaskFinished(task.id) }}> <MdDone /></span>
-                    </div>
-                </form>
-            )}
-        </Draggable>
-    )
-
-}
-
-export default SingleTask
+export default SingleTodo;
